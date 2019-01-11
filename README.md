@@ -1,4 +1,5 @@
 # ReactBouts
+![reactbouts-screenshot](./img/reactbouts.png)
 
 ## What is ReactBouts?
 ReactBouts is a simple tool for randomly generating matches for
