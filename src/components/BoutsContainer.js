@@ -138,9 +138,7 @@ class Bout extends React.Component {
                 return (
                     <div>
                         <h2 className="vertical-margin">
-                            <i className="nes-icon trophy is-medium"></i>
                             &nbsp;{combatant_1}&nbsp;wins!&nbsp;
-                            <i className="nes-icon trophy is-medium"></i>
                             <br/><br/>
                             <small className="vertical-margin">
                                 Runner-up:&nbsp;{combatant_2}
@@ -152,9 +150,7 @@ class Bout extends React.Component {
                 return (
                     <div>
                         <h2 className="vertical-margin">
-                            <i className="nes-icon trophy is-medium"></i>
                             &nbsp;{combatant_2}&nbsp;wins!&nbsp;
-                            <i className="nes-icon trophy is-medium"></i>
                             <br/><br/>
                             <small className="vertical-margin">
                                 Runner-up:&nbsp;{combatant_1}
