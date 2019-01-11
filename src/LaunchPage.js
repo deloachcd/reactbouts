@@ -68,10 +68,10 @@ class LaunchPage extends React.Component {
                         {this.getActiveModePrintable()}
                     </h2>
                     <BoutsContainer onClick={() => {
-                                           this.setState({
-                                               active_mode: null,
-                                               names_submitted: null,
-                                           })}}
+                                             this.setState({
+                                                 active_mode: null,
+                                                 names_submitted: null,
+                                             })}}
                                            names={this.state.names_submitted}
                                            />
                 </div>

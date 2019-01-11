@@ -14,6 +14,15 @@ function StartButton(props) {
 
 }
 
+function WinButton(props) {
+    return <button type="button"
+                   className="nes-btn padded-btn"
+                   onClick={props.onClick}>
+                        <i className="nes-icon trophy is-medium"></i>
+           </button>;
+
+}
+
 function ResetButton(props) {
     return <button type="button"
                    className="nes-btn padded-btn wide-btn"
@@ -36,4 +45,5 @@ export {
     StandardButton,
     StartButton,
     ResetButton,
+    WinButton,
 }

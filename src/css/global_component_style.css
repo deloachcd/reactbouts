@@ -47,11 +47,17 @@ body {
 }
 
 .width80 {
-  width: 80%;
-  max-width: 800px;
+  width: 90%;
+  max-width: 1000px;
   margin: auto;
 }
 
 .padded-title {
   padding-bottom: 20px;
+}
+
+.fixed-width-timer {
+  width: 150px;
+  height: 75px;
+  margin: auto;
 }
