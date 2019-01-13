@@ -1,6 +1,7 @@
 import React from 'react';
 import { StandardButton, StartButton,
          WinButton, ResetButton } from './Buttons';
+import { create_bout_sequence } from './algorithm/bout_order_algorithm'
 
 class BoutTimer extends React.Component {
     constructor(props) {
@@ -184,11 +185,18 @@ class BoutsContainer extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            score_grid: Array(this.props.names.length).fill(
+                Array(this.props.names.length).fill(0)
+            ),
+        }
+
         this.printNames = this.printNames.bind(this);
-        this.generateBouts = this.generateBouts.bind(this);
+        this.generateRandomBouts = this.generateRandomBouts.bind(this);
+        this.generateRankedBouts = this.generateRankedBouts.bind(this);
     }
 
-    generateBouts() {
+    generateRandomBouts() {
         let bouts = [], names = this.props.names;
         if (names.length > 1) {
             if (names.length % 2 === 0) {
@@ -222,6 +230,22 @@ class BoutsContainer extends React.Component {
         return bouts;
     }
 
+    generateRankedBouts() {
+        const score_grid = this.state.score_grid;
+        const bout_sequence = create_bout_sequence(score_grid);
+        const names = this.props.names;
+        let bouts = [];
+        
+        for (var i = 0; i < bout_sequence.length; i++) {
+            let sequence_entry = bout_sequence[i];
+            bouts.push(<Bout bout_number={i+1}
+                             key={i+1}
+                             combatant_1={names[sequence_entry[0]]}
+                             combatant_2={names[sequence_entry[1]]}/>);
+        }
+        return bouts;
+    }
+
     printNames() {
         let names_printable = ""
         for (let i = 0; i < this.props.names.length; i++) {
@@ -231,14 +255,25 @@ class BoutsContainer extends React.Component {
     }
     
     render() {
-        return (
-            <div className="width80">
-                {this.generateBouts()}
-                <ResetButton text="Return to menu"
-                                onClick={this.props.onClick}
-                                shouldConfirm={true}/>
-            </div>
-        );
+        if (this.props.mode === "Random") {
+            return (
+                <div className="width80">
+                    {this.generateRandomBouts()}
+                    <ResetButton text="Return to menu"
+                                    onClick={this.props.onClick}
+                                    shouldConfirm={true}/>
+                </div>
+            );
+        } else if (this.props.mode === "Ranked") {
+            return (
+                <div className="width80">
+                    {this.generateRankedBouts()}
+                    <ResetButton text="Return to menu"
+                                    onClick={this.props.onClick}
+                                    shouldConfirm={true}/>
+                </div>
+            );
+        }
     }
 }
 

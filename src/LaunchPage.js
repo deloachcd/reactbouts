@@ -72,7 +72,8 @@ class LaunchPage extends React.Component {
                                                  active_mode: null,
                                                  names_submitted: null,
                                              })}}
-                                           names={this.state.names_submitted}
+                                    names={this.state.names_submitted}
+                                    mode={this.state.active_mode}
                                            />
                 </div>
             )
