@@ -1,185 +1,8 @@
 import React from 'react';
-import { StandardButton, StartButton,
-         WinButton, ResetButton } from './Buttons';
+import { ResetButton } from './Buttons';
 import { create_bout_sequence } from './algorithm/bout_order_algorithm'
-
-class BoutTimer extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            total_seconds: 0,
-            next_second_timeout: null,
-        };
-
-        this.getFormattedTime.bind(this);
-        this.incrementTime.bind(this);
-    }
-
-    incrementTime() {
-        // Increment timer by a single second, provided
-        // the timer is active
-        const total_seconds = this.state.total_seconds;
-        const next_second_timeout = this.state.next_second_timeout;
-
-        this.setState({
-            total_seconds: (this.props.timer_paused) ? total_seconds
-                                                     : total_seconds+1,
-            next_second_timeout: next_second_timeout,
-        })
-    }
-
-    getFormattedTime() {
-        const total_seconds = this.state.total_seconds;
-        const minutes = Math.floor(total_seconds / 60);
-        const seconds = String(Math.floor(total_seconds % 60));
-        const seconds_fmt = (seconds.length < 2) ? '0' + seconds : seconds;
-
-        return `${minutes}:${seconds_fmt}`;
-    }
-
-    componentDidMount() {
-        this.interval = setInterval(() => this.incrementTime(), 1000);
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.interval);
-    }
-
-    render() {
-        return (
-            <div className="nes-container fixed-width-timer center">
-                <h2>{this.getFormattedTime()}</h2>
-            </div>
-        );
-    }
-}
-
-class Bout extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            timer_paused: true,
-            status: "not started",
-            winner: null,
-        }
-
-        this.setRenderContentFromState.bind(this);
-        this.declareWinner.bind(this);
-        this.startBout.bind(this);
-        this.flipTimer.bind(this);
-    }
-
-    declareWinner(combatant) {
-        this.setState({
-            timer_paused: true,
-            status: "winner declared",
-            winner: combatant,
-        });
-    }
-
-    startBout() {
-        this.setState({
-            timer_paused: false,
-            status: "in progress",
-            winner: null,
-        });
-    }
-
-    flipTimer() {
-        this.setState({
-            timer_paused: !this.state.timer_paused,
-            status: this.state.status,
-            winner: this.state.winner,
-        });
-    }
-
-    setRenderContentFromState() {
-        const combatant_1 = this.props.combatant_1;
-        const combatant_2 = this.props.combatant_2;
-
-        if (this.state.status === "not started") {
-            return (
-                <div>
-                    <h2 className="vertical-margin">
-                        {combatant_1}&nbsp;vs.&nbsp;{combatant_2}
-                    </h2>
-                    <StartButton text="Start bout"
-                                 onClick={() => this.startBout()}/>
-                </div>
-            );
-        } else if (this.state.status === "in progress") {
-            let button;
-            if (!this.state.timer_paused) {
-                button = <StandardButton text="Pause bout"
-                                         onClick={() => this.flipTimer()}/>
-            } else {
-                button = <StandardButton text="Resume bout"
-                                         onClick={() => this.flipTimer()}/>
-            }
-            return (
-                <div>
-                    <h2 className="vertical-margin">
-                        <WinButton onClick={() =>
-                                       this.declareWinner(combatant_1)
-                                   }/>
-                        &nbsp;&nbsp;{combatant_1}
-                        &nbsp;vs.&nbsp;
-                        {combatant_2}&nbsp;&nbsp;
-                        <WinButton onClick={() =>
-                                       this.declareWinner(combatant_2)
-                                   }/>
-                    </h2>
-                    {button}
-                </div>
-            );
-        } else if (this.state.status === "winner declared") {
-            if (this.state.winner === combatant_1) {
-                return (
-                    <div>
-                        <h2 className="vertical-margin">
-                            &nbsp;{combatant_1}&nbsp;wins!&nbsp;
-                            <br/><br/>
-                            <small className="vertical-margin">
-                                Runner-up:&nbsp;{combatant_2}
-                            </small>
-                        </h2>
-                    </div>
-                );
-            } else if (this.state.winner === combatant_2) {
-                return (
-                    <div>
-                        <h2 className="vertical-margin">
-                            &nbsp;{combatant_2}&nbsp;wins!&nbsp;
-                            <br/><br/>
-                            <small className="vertical-margin">
-                                Runner-up:&nbsp;{combatant_1}
-                            </small>
-                        </h2>
-                    </div>
-                );
-            }
-            return (
-                <div>
-                    <h2 className="vertical-margin">
-                        {this.state.winner} wins!
-                    </h2>
-                </div>
-            )
-        }
-    }
-
-    render() {
-        return (
-            <div className="nes-container with-title vertical-margin center">
-                <h2 className="title">Bout #{this.props.bout_number}</h2>
-                <BoutTimer timer_paused={this.state.timer_paused}/>
-                {this.setRenderContentFromState()}
-            </div>
-        );
-    }
-};
+import Bout from './Bout';
+import Leaderboard from './Leaderboard';
 
 class BoutsContainer extends React.Component {
     constructor(props) {
@@ -192,8 +15,67 @@ class BoutsContainer extends React.Component {
         }
 
         this.printNames = this.printNames.bind(this);
+        this.recordBoutResult = this.recordBoutResult.bind(this);
         this.generateRandomBouts = this.generateRandomBouts.bind(this);
         this.generateRankedBouts = this.generateRankedBouts.bind(this);
+        this.generateRankings = this.generateRankings.bind(this);
+    }
+
+    recordBoutResult(winner, runner_up) {
+        function array2d_modify_value(array, i, j, value) {
+            // Equivalent to what sane programmers would expect
+            // `array[i][j] = value` to do, why this somehow modifies
+            // entire columns in this context is beyond me
+            let before = array[i].slice(0,j)
+            let new_value = [value]
+            let after = array[i].slice(j+1)
+            array[i] = before.concat(new_value).concat(after)
+        }
+
+        let winner_id = this.props.names.indexOf(winner);
+        let runner_id = this.props.names.indexOf(runner_up);
+        let new_score_grid = this.state.score_grid.slice();
+        
+        array2d_modify_value(new_score_grid, winner_id, runner_id, 2);
+        array2d_modify_value(new_score_grid, runner_id, winner_id, -1);
+        
+        this.setState({
+            score_grid: new_score_grid,
+        });
+    }
+
+    generateRankings() {
+        function has_non_zero_values(score_grid_row) {
+            // Used to determine whether or not a combatant
+            // has competed
+            return score_grid_row.reduce((found_non_zero, element) => {
+                return Boolean(found_non_zero || element !== 0);
+            });
+        }
+
+        function get_score(score_grid_row) {
+            return score_grid_row.reduce((total, element) => {
+                return total + element;
+            })
+        }
+
+        const names = this.props.names;
+        const score_grid = this.state.score_grid;
+        let combatants = [];
+        for (var i = 0; i < names.length; i++) {
+            if (has_non_zero_values(score_grid[i])) {
+                combatants.push({
+                    name: names[i],
+                    score: get_score(score_grid[i]),
+                });
+            }
+        }
+        combatants.sort((a, b) => {
+            return b.score - a.score;
+        })
+
+        console.log(combatants);
+        return combatants;
     }
 
     generateRandomBouts() {
@@ -205,7 +87,10 @@ class BoutsContainer extends React.Component {
                     bouts.push(<Bout bout_number={Math.floor(i/2) + 1}
                                      key={Math.floor(i/2) + 1}
                                      combatant_1={names[i]}
-                                     combatant_2={names[i+1]}/>);
+                                     combatant_2={names[i+1]}
+                                     recordBoutResult={this.recordBoutResult
+                                                       .bind(this)}
+                                     />);
                 }
             } else {
                 // Odd number of combatants
@@ -213,7 +98,10 @@ class BoutsContainer extends React.Component {
                     bouts.push(<Bout bout_number={Math.floor(i/2) + 1}
                                      key={Math.floor(i/2) + 1}
                                      combatant_1={names[i]}
-                                     combatant_2={names[i+1]}/>);
+                                     combatant_2={names[i+1]}
+                                     recordBoutResult={this.recordBoutResult
+                                                       .bind(this)}
+                                     />);
                 }
                 // Randomly pick a person who has already been placed
                 // in a bout to compete with final combatant
@@ -222,7 +110,10 @@ class BoutsContainer extends React.Component {
                 bouts.push(<Bout bout_number={Math.floor(l/2) + 1}
                                  key={Math.floor(l/2) + 1}
                                  combatant_1={names[l]}
-                                 combatant_2={names[r]}/>);
+                                 combatant_2={names[r]}
+                                 recordBoutResult={this.recordBoutResult
+                                                   .bind(this)}
+                                 />);
             }
         } else {
             bouts = ["Not enough combatants to generate any bouts!"];
@@ -241,7 +132,10 @@ class BoutsContainer extends React.Component {
             bouts.push(<Bout bout_number={i+1}
                              key={i+1}
                              combatant_1={names[sequence_entry[0]]}
-                             combatant_2={names[sequence_entry[1]]}/>);
+                             combatant_2={names[sequence_entry[1]]}
+                             recordBoutResult={this.recordBoutResult
+                                               .bind(this)}
+                             />);
         }
         return bouts;
     }
@@ -266,7 +160,8 @@ class BoutsContainer extends React.Component {
             );
         } else if (this.props.mode === "Ranked") {
             return (
-                <div className="width80">
+                <div className="width90">
+                    <Leaderboard ranked_combatants={this.generateRankings()}/>
                     {this.generateRankedBouts()}
                     <ResetButton text="Return to menu"
                                     onClick={this.props.onClick}
